@@ -18,6 +18,7 @@ class Mailbox {
 	protected $attachmentsDir = null;
 	protected $expungeOnDisconnect = true;
 	private $imapStream;
+	protected $ignoreAttachment = false;
 
 	/**
          * @param string $imapPath
@@ -452,7 +453,8 @@ class Mailbox {
      * @param bool $markAsSeen
      * @return IncomingMail
      */
-	public function getMail($mailId, $markAsSeen = true) {
+	public function getMail($mailId, $markAsSeen = true, $ignoreAttachment = false) {
+		$this->ignoreAttachment = $ignoreAttachment;
 		$headersRaw = imap_fetchheader($this->getImapStream(), $mailId, FT_UID);
 		$head = imap_rfc822_parse_headers($headersRaw);
 
@@ -564,7 +566,7 @@ class Mailbox {
 			$attachmentId = null;
 		}
 
-		if($attachmentId) {
+		if($this->ignoreAttachment == false && $attachmentId) {
 			if(empty($params['filename']) && empty($params['name'])) {
 				$fileName = $attachmentId . '.' . strtolower($partStructure->subtype);
 			}
